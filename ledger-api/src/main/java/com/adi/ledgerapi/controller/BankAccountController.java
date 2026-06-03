@@ -3,6 +3,7 @@ package com.adi.ledgerapi.controller;
 import com.adi.ledgerapi.dto.TransferRequest;
 import com.adi.ledgerapi.model.BankAccount;
 import com.adi.ledgerapi.service.BankAccountService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -22,7 +23,7 @@ public class BankAccountController {
     }
 
     @PostMapping("/transfers")
-    public String transferMoney(@RequestBody TransferRequest request) {
+    public String transferMoney(@Valid @RequestBody TransferRequest request) {
         accountService.transferMoney(
                 request.getSourceAccountNumber(),
                 request.getDestinationAccountNumber(),
