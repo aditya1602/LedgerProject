@@ -2,6 +2,7 @@ package com.adi.ledgerapi.service;
 
 import com.adi.ledgerapi.model.BankAccount;
 import com.adi.ledgerapi.repository.BankAccountRepository;
+import com.adi.ledgerapi.dto.TransferRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -10,10 +11,11 @@ import java.math.BigDecimal;
 public class BankAccountService {
 
     private final BankAccountRepository repository;
+    private final RiskAnalysisService riskService;
 
-
-    public BankAccountService(BankAccountRepository repository) {
+    public BankAccountService(BankAccountRepository repository, RiskAnalysisService riskService) {
         this.repository = repository;
+        this.riskService = riskService;
     }
 
     public BankAccount createAccount(BankAccount account) {
@@ -22,6 +24,15 @@ public class BankAccountService {
 
     @Transactional
     public void transferMoney(String fromAccNumber, String toAccNumber, BigDecimal amount) {
+
+        TransferRequest request = new TransferRequest();
+        request.setSourceAccountNumber(fromAccNumber);
+        request.setDestinationAccountNumber(toAccNumber);
+        request.setAmount(amount);
+
+        if (!riskService.isTransferApproved(request)) {
+            throw new RuntimeException("Transfer denied by Risk Analysis Engine");
+        }
         BankAccount fromAcc = repository.findByAccountNumber(fromAccNumber)
                 .orElseThrow(() -> new RuntimeException("Source account not found"));
 
